@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo — Мой список дел</title>
+    <style>
+        /* ====== ОСНОВНЫЕ СТИЛИ ====== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        /* ====== ФОРМА ДОБАВЛЕНИЯ ====== */
+        .add-form {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        .form-row-full {
+            grid-column: 1 / -1;
+        }
+
+        .btn-add {
+            grid-column: 1 / -1;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-add:hover {
+            background: #5a67d8;
+        }
+
+        /* ====== СТАТИСТИКА ====== */
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #777;
+        }
+
+        /* ====== КАРТОЧКА ЗАДАЧИ ====== */
+        .task-item {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .task-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .task-item.done {
+            opacity: 0.6;
+            border-left-color: #48bb78;
+        }
+
+        .task-item.overdue {
+            border-left-color: #fc8181;
+            background: #fff5f5;
+        }
+
+        .task-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .task-title.done {
+            text-decoration: line-through;
+        }
+
+        .task-description {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0 10px 0;
+        }
+
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 13px;
+            color: #777;
+            margin: 8px 0;
+        }
+
+        .task-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .priority {
+            font-weight: bold;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .priority.Высокий {
+            background: #fc8181;
+            color: white;
+        }
+
+        .priority.Средний {
+            background: #f6ad55;
+            color: white;
+        }
+
+        .priority.Низкий {
+            background: #68d391;
+            color: white;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 5px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-done {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-done:hover {
+            background: #38a169;
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            background: #fc8181;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #f56565;
+            transform: scale(1.05);
+        }
+
+        .btn-undo {
+            background: #f6ad55;
+            color: white;
+        }
+
+        .btn-undo:hover {
+            background: #ed8936;
+            transform: scale(1.05);
+        }
+
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 40px 0;
+            font-size: 18px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .filter-btn {
+            padding: 5px 12px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        max-width: 600px {
+            .container {
+                padding: 15px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .stats {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Список дел</h1>
+        <p class="subtitle">Планируй, выполняй, достигай! (работает без интернета)</p>
+
+        <!-- ФОРМА ДОБАВЛЕНИЯ -->
+        <div class="add-form">
+            <div class="form-row">
+                <div class="form-group form-row-full">
+                    <label>Название дела *</label>
+                    <input type="text" id="taskTitle" placeholder="Купить продукты...">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group form-row-full">
+                    <label>Описание</label>
+                    <textarea id="taskDescription" placeholder="Подробности дела..."></textarea>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Дата выполнения</label>
+                    <input type="date" id="taskDate">
+                </div>
+                <div class="form-group">
+                    <label>Время выполнения</label>
+                    <input type="time" id="taskTime">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Приоритет</label>
+                    <select id="taskPriority">
+                        <option value="Высокий">🔴 Высокий</option>
+                        <option value="Средний" selected>🟡 Средний</option>
+                        <option value="Низкий">🟢 Низкий</option>
+                    </select>
+                </div>
+                <div class="form-group" style="justify-content: flex-end;">
+                    <button class="btn-add" onclick="addTask()">➕ Добавить дело</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТАТИСТИКА -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalTasks">0</div>
+                <div class="stat-label">Всего дел</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="activeTasks">0</div>
+                <div class="stat-label">Активных</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="doneTasks">0</div>
+                <div class="stat-label">Выполнено</div>
+            </div>
+        </div>
+
+        <!-- ФИЛЬТРЫ -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all" onclick="filterTasks('all')">Все</button>
+            <button class="filter-btn" data-filter="active" onclick="filterTasks('active')">Активные</button>
+            <button class="filter-btn" data-filter="done" onclick="filterTasks('done')">✅ Выполнено</button>
+        </div>
+
+        <div id="taskList">
+            <div class="empty">Загрузка...</div>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+        let currentFilter = 'all';
+
+        // ====== ЗАГРУЗКА ИЗ ХРАНИЛИЩА ======
+        function loadTasks() {
+            const saved = localStorage.getItem('tasks');
+            if (saved) {
+                tasks = JSON.parse(saved);
+            } else {
+                // Добавляем примеры дел
+                tasks = [
+                    { id: 1, title: 'Купить продукты', description: 'Молоко, хлеб, яйца', date: '2026-06-25', time: '18:00', priority: 'Высокий', done: false },
+                    { id: 2, title: 'Сделать домашку', description: 'Математика, физика', date: '2026-06-24', time: '20:00', priority: 'Средний', done: false },
+                    { id: 3, title: 'Позвонить маме', description: '', date: '2026-06-23', time: '12:00', priority: 'Низкий', done: true }
+                ];
+                saveTasks();
+            }
+            renderTasks();
+            updateStats();
+        }
+
+        // ====== СОХРАНЕНИЕ В ХРАНИЛИЩЕ ======
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        // ====== ДОБАВЛЕНИЕ ======
+        function addTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const date = document.getElementById('taskDate').value;
+            const time = document.getElementById('taskTime').value;
+            const priority = document.getElementById('taskPriority').value;
+
+            if (!title) {
+                alert('Введите название дела!');
+                return;
+            }
+
+            const newTask = {
+                id: Date.now(),
+                title: title,
+                description: description,
+                date: date || 'Без даты',
+                time: time || 'Без времени',
+                priority: priority,
+                done: false
+            };
+
+            tasks.unshift(newTask);
+            saveTasks();
+            renderTasks();
+            updateStats();
+
+            // Очищаем форму
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+            document.getElementById('taskDate').value = '';
+            document.getElementById('taskTime').value = '';
+        }
+
+        // ====== ИЗМЕНЕНИЕ СТАТУСА ======
+        function toggleDone(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.done = !task.done;
+                saveTasks();
+                renderTasks();
+                updateStats();
+            }
+        }
+
+        // ====== УДАЛЕНИЕ ======
+        function deleteTask(id) {
+            if (!confirm('Удалить дело?')) return;
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderTasks();
+            updateStats();
+        }
+
+        // ====== ФИЛЬТРАЦИЯ ======
+        function filterTasks(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            renderTasks();
+        }
+
+        // ====== СТАТИСТИКА ======
+        function updateStats() {
+            const total = tasks.length;
+            const active = tasks.filter(t => !t.done).length;
+            const done = tasks.filter(t => t.done).length;
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('activeTasks').textContent = active;
+            document.getElementById('doneTasks').textContent = done;
+        }
+
+        // ====== ПРОВЕРКА ПРОСРОЧКИ ======
+        function isOverdue(task) {
+            if (task.done) return false;
+            if (!task.date || task.date === 'Без даты') return false;
+
+            const today = new Date().toISOString().split('T')[0];
+            if (task.date < today) return true;
+            if (task.date === today && task.time !== 'Без времени') {
+                const now = new Date().toTimeString().slice(0, 5);
+                return task.time < now;
+            }
+            return false;
+        }
+
+        // ====== ОТРИСОВКА СПИСКА ======
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+
+            let filtered = tasks;
+            if (currentFilter === 'active') {
+                filtered = tasks.filter(t => !t.done);
+            } else if (currentFilter === 'done') {
+                filtered = tasks.filter(t => t.done);
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="empty">📭 Нет дел. Добавь первое!</div>';
+                return;
+            }
+
+            let html = '';
+
+            filtered.forEach(task => {
+                const overdue = isOverdue(task);
+                const doneClass = task.done ?
+                'done' : '';
+                const overdueClass = overdue ? 'overdue' : '';
+
+                html += `
+                    <div class="task-item ${doneClass} ${overdueClass}">
+                        <div class="task-title ${doneClass}">${task.title}</div>
+                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                        <div class="task-meta">
+                            <span>📅 ${task.date}</span>
+                            <span>⏰ ${task.time}</span>
+                            <span class="priority ${task.priority}">${task.priority}</span>
+                            ${overdue ? '<span style="color:red;">⚠️ ПРОСРОЧЕНО!</span>' : ''}
+                        </div>
+                        <div class="task-actions">
+                            <button class="btn ${task.done ? 'btn-undo' : 'btn-done'}" onclick="toggleDone(${task.id})">
+                                ${task.done ? '↩️ Вернуть' : '✅ Выполнено'}
+                            </button>
+                            <button class="btn btn-delete" onclick="deleteTask(${task.id})">🗑 Удалить</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+        }
+
+        // ====== КЛАВИША ENTER ======
+        document.getElementById('taskTitle').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        // ====== ЗАГРУЗКА ======
+        document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
+        loadTasks();
+    </script>
+</body>
+</html>
