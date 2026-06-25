@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo — Список дел</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .add-form {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-add:hover {
+            background: #5a67d8;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .task-item {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .task-item.done {
+            opacity: 0.6;
+            border-left-color: #48bb78;
+        }
+
+        .task-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .task-title.done {
+            text-decoration: line-through;
+        }
+
+        .task-description {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 13px;
+            color: #777;
+            margin: 8px 0;
+        }
+
+        .priority {
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .priority.Высокий { background: #fc8181; color: white; }
+        .priority.Средний { background: #f6ad55; color: white; }
+        .priority.Низкий { background: #68d391; color: white; }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 5px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-done { background: #48bb78; color: white; }
+        .btn-done:hover { background: #38a169; }
+        .btn-delete { background: #fc8181; color: white; }
+        .btn-delete:hover { background: #f56565; }
+        .btn-undo { background: #f6ad55; color: white; }
+        .btn-undo:hover { background: #ed8936; }
+
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 40px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Список дел</h1>
+
+        <div class="add-form">
+            <div class="form-group">
+                <label>Название дела *</label>
+                <input type="text" id="taskTitle" placeholder="Купить продукты...">
+            </div>
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="taskDescription" placeholder="Подробности..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Дата</label>
+                    <input type="date" id="taskDate">
+                </div>
+                <div class="form-group">
+                    <label>Время</label>
+                    <input type="time" id="taskTime">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Приоритет</label>
+                <select id="taskPriority">
+                    <option value="Высокий">🔴 Высокий</option>
+                    <option value="Средний" selected>🟡 Средний</option>
+                    <option value="Низкий">🟢 Низкий</option>
+                </select>
+            </div>
+            <button class="btn-add" onclick="addTask()">➕ Добавить дело</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalTasks">0</div>
+                <div class="stat-label">Всего</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="activeTasks">0</div>
+                <div class="stat-label">Активных</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="doneTasks">0</div>
+                <div class="stat-label">Выполнено</div>
+            </div>
+        </div>
+
+        <div id="taskList">
+            <div class="empty">Загрузка...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'api.php?path=';
+
+        async function loadTasks() {
+            try {
+                const response = await fetch(API_URL + 'tasks');
+                const tasks = await response.json();
+                renderTasks(tasks);
+                updateStats(tasks);
+            } catch (error) {
+                document.getElementById('taskList').innerHTML = '<div class="empty">❌ Ошибка загрузки. Запусти сервер!</div>';
+            }
+        }
+
+        async function addTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const due_date = document.getElementById('taskDate').value;
+            const due_time = document.getElementById('taskTime').value;
+            const priority = document.getElementById('taskPriority').value;
+
+            if (!title) {
+                alert('Введите название дела!');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL + 'tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description, due_date, due_time, priority })
+                });
+
+                if (response.ok) {
+                    document.getElementById('taskTitle').value = '';
+                    document.getElementById('taskDescription').value = '';
+                    document.getElementById('taskDate').value = '';
+                    document.getElementById('taskTime').value = '';
+                    loadTasks();
+                }
+            } catch (error) {
+                alert('Ошибка добавления!');
+            }
+        }
+
+        async function toggleDone(id, currentDone) {
+            try {
+                const response = await fetch(API_URL + `tasks/${id}/done`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ done: currentDone ? 0 : 1 })
+                });
+
+                if (response.ok) {
+                    loadTasks();
+                }
+            } catch (error) {
+                alert('Ошибка обновления!');
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('Удалить дело?')) return;
+
+            try {
+                const response = await fetch(API_URL + `tasks/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadTasks();
+                }
+            } catch (error) {
+                alert('Ошибка удаления!');
+            }
+        }
+
+        function renderTasks(tasks) {
+            const list = document.getElementById('taskList');
+
+            if (!tasks || tasks.length === 0) {
+                list.innerHTML = '<div class="empty">📭 Нет дел. Добавь первое!</div>';
+                return;
+            }
+
+            let html = '';
+            tasks.forEach(task => {
+                const done = task.done == 1;
+                html += `
+                    <div class="task-item ${done ? 'done' : ''}">
+                        <div class="task-title ${done ? 'done' : ''}">${task.title}</div>
+                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                        <div class="task-meta">
+                            <span>📅 ${task.due_date || 'Без даты'}</span>
+                            <span>⏰ ${task.due_time || 'Без времени'}</span>
+                            <span class="priority ${task.priority}">${task.priority}</span>
+                        </div>
+                        <div class="task-actions">
+                            <button class="btn ${done ? 'btn-undo' : 'btn-done'}" onclick="toggleDone(${task.id}, ${done})">
+                                ${done ? '↩️ Вернуть' : '✅ Выполнено'}
+                            </button>
+                            <button class="btn btn-delete" onclick="deleteTask(${task.id})">🗑 Удалить</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+        }
+
+        function updateStats(tasks) {
+            if (!tasks) return;
+            const total = tasks.length;
+            const done = tasks.filter(t => t.done == 1).length;
+            const active = total - done;
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('activeTasks').textContent = active;
+            document.getElementById('doneTasks').textContent = done;
+        }
+
+        document.getElementById('taskTitle').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addTask();
+        });
+
+        document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
+        loadTasks();
+    </script>
+</body>
+</html>
